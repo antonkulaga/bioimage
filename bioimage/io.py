@@ -1,22 +1,11 @@
-from datetime import datetime
-from enum import Enum
-import numpy as np
-import pims
-import skimage
+import datetime
+
 from pims import *
 from pycomfort.files import *
 from skimage import color
 from skimage.exposure import rescale_intensity
 from skimage.util import *
-
-from filters import rolling_ball
-from skimage.color import *
-
-
-class Color(Enum):
-    RED = 0
-    GREEN = 1
-    BLUE = 2
+from bioimage.filters import *
 
 
 def load_bio_image(from_file: Path):
@@ -33,9 +22,7 @@ def load_frame(from_file: Path):
 
 
 def file_image(from_file: Path):
-    return (from_file, load_bio_image(from_file))
-
-
+    return from_file, load_bio_image(from_file)
 
 def get_date(image, verbose=False):
     """
@@ -47,20 +34,8 @@ def get_date(image, verbose=False):
     d = image.metadata.ImageAcquisitionDate(0)
     if verbose:
         print(d)
-    return datetime.strptime(d[0:d.index("T")], '%Y-%m-%d')
+    return datetime.datetime.strptime(d[0:d.index("T")], '%Y-%m-%d')
 
-
-def gray2color(u: np.ndarray, channel: Color = Color.GREEN) -> np.ndarray:
-    """
-    :param u:  fluorescence image
-    :param channel: Channel to code the image in (0: Red, 1: Green, 2: Blue).
-    :return: The computed output image in color. Green by default
-    """
-    return np.dstack((
-        rescale_intensity(u if channel == Color.RED else np.zeros_like(u), out_range='float'),
-        rescale_intensity(u if channel == Color.GREEN else np.zeros_like(u), out_range='float'),
-        rescale_intensity(u if channel == Color.BLUE else np.zeros_like(u), out_range='float'),
-    ))
 
 
 def image_2_tiff(image: Union[np.ndarray, pims.Frame], where: str, clahe: bool = False):

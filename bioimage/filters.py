@@ -1,15 +1,27 @@
-from datetime import datetime
-from pathlib import Path
-from typing import Union
-import skimage
-from skimage.exposure import rescale_intensity
-from skimage import util, filters, morphology
-import matplotlib.pyplot as plt
 import numpy as np
-import pims
-from functional import seq
-from pims import *
-from pycomfort.files import *
+import skimage
+from skimage import filters, morphology
+from skimage.exposure import rescale_intensity
+from enum import Enum
+
+
+class Color(Enum):
+    RED = 0
+    GREEN = 1
+    BLUE = 2
+
+
+def gray2color(u: np.ndarray, channel: Color = Color.GREEN) -> np.ndarray:
+    """
+    :param u:  fluorescence image
+    :param channel: Channel to code the image in (0: Red, 1: Green, 2: Blue).
+    :return: The computed output image in color. Green by default
+    """
+    return np.dstack((
+        rescale_intensity(u if channel == Color.RED else np.zeros_like(u), out_range='float'),
+        rescale_intensity(u if channel == Color.GREEN else np.zeros_like(u), out_range='float'),
+        rescale_intensity(u if channel == Color.BLUE else np.zeros_like(u), out_range='float'),
+    ))
 
 
 def rolling_ball(image, radius=20, light_bg=False):
