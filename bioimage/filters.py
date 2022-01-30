@@ -55,9 +55,10 @@ def merge_glowing(normal_image: np.ndarray, glowing_image: np.ndarray, color: Co
     normal_frame = img_as_float64(skimage.color.gray2rgb(normal_image))
     glowing_frame = img_as_float64(glowing_image)
     glowing = gray2color(rolling_ball(glowing_frame, ball), color) if correction else gray2color(glowing_frame, color)
-    return (normal_frame * (1 - glowing_part) + glowing * glowing_part)
+    return normal_frame * (1 - glowing_part) + glowing * glowing_part
 
 
+@beartype
 def local_contrast(image: np.ndarray):
     imageRooted = image ** 2
     imageRootedConvolved = skimage.filters.gaussian(imageRooted, 1.2)

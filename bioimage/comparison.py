@@ -66,7 +66,7 @@ def show_file_images(*files: Path, cols: int = 2, height_pixels: float = 200,
 
 
 @beartype
-def to_condition(p: Path, ind: int = -1, sep: str ="_") -> list[str]:
+def to_condition(p: Path, ind: int = -1, sep: str ="_") -> list:
     """
     converts path into a row for condition dataframe
     it assumes that the names of the files have pars separated by "_" or other separator
@@ -126,12 +126,10 @@ def get_glowing_overlays(day_folder: Path,
     for pair in get_image_groups(day_folder):
         parts = pair.partition(lambda f: normal in f.stem)
         assert parts.len() == 2, f'{pair} should have only two files'
-        if parts[0].len() ==1 or parts[1].len() ==1:
+        if parts[0].len() == 1 or parts[1].len() == 1:
             normal_path: Path = parts[0][0]
             glowing_path: Path = parts[1][0]
-            merged = img_as_uint(
-                load_glowing_pair(normal_path, glowing_path,
-                                  color=color, glowing_part=glowing_part, correction=correction))
+            merged = load_glowing_pair(normal_path, glowing_path, color=color, glowing_part=glowing_part, correction=correction)
             results.append((glowing_path.stem, merged))
         else:
             if not skip_unpaired:
