@@ -16,5 +16,6 @@ dependencies:
     - pandas
     - twine
     - tifffile
+    - numpy
     - pip:
-          - pycomfort==0.0.3
+          - pycomfort==0.0.4

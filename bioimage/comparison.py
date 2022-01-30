@@ -2,12 +2,13 @@ import pandas as pd
 
 from bioimage.io import *
 import matplotlib.pyplot as plt
+from beartype import beartype
 
 
 def show_images(*images, titles=None, cols: int = 2,
                 height_pixels: float = 200,
                 output_folder: Path = None,
-                cmap="gray",
+                cmap: str = "gray",
                 width_pixels: float = None):
     '''
     Shows images in a nice grid
@@ -64,6 +65,7 @@ def show_file_images(*files: Path, cols: int = 2, height_pixels: float = 200,
     show_images(*images, cols=cols, height_pixels = height_pixels, output_folder = output_folder, cmap= cmap, titles=titles, width_pixels=width_pixels)
 
 
+@beartype
 def to_condition(p: Path, ind: int = -1, sep: str ="_") -> list[str]:
     """
     converts path into a row for condition dataframe
@@ -84,6 +86,7 @@ def to_condition(p: Path, ind: int = -1, sep: str ="_") -> list[str]:
         return [last[0:start].strip(), num, p, False]
 
 
+@beartype
 def folder_to_conditions(folder: Path, condition_index: int = -1, file_column: str = "file", extension: str = "czi", sep: str ="_") -> pd.DataFrame:
     """
     :param folder: path to the folder
@@ -98,7 +101,8 @@ def folder_to_conditions(folder: Path, condition_index: int = -1, file_column: s
         .to_pandas(["condition", "num", file_column, "selected"])
 
 
-def get_image_groups(day_folder: Path, condition_index: int = -1, file_column: str = "file") -> seq[Path]:
+@beartype
+def get_image_groups(day_folder: Path, condition_index: int = -1, file_column: str = "file"):
     """
     get groups of images, for example: fluorescent/normal images
     :param day_folder:
@@ -109,14 +113,61 @@ def get_image_groups(day_folder: Path, condition_index: int = -1, file_column: s
     return folder_to_conditions(day_folder, file_column=file_column, condition_index=condition_index).groupby("condition")[file_column].apply(seq)
 
 
-def get_glowing_overlays(day_folder: Path, normal="phc", correction: bool = True, glowing_part: float = 0.5) -> list:
+@beartype
+def get_glowing_overlays(day_folder: Path,
+                         normal="phc",
+                         correction: bool = True,
+                         color: Color = Color.GREEN,
+                         glowing_part: float = 0.5,
+                         skip_unpaired: bool = True,
+                         verbose: bool = False
+                         ) -> list:
     results = []
     for pair in get_image_groups(day_folder):
         parts = pair.partition(lambda f: normal in f.stem)
         assert parts.len() == 2, f'{pair} should have only two files'
-        normal_path: Path = parts[0][0]
-        glowing_path: Path = parts[1][0]
-        merged = img_as_uint(load_glowing_pair(normal_path, glowing_path, glowing_part=glowing_part, correction=correction))
-        results.append((glowing_path.stem, merged))
+        if parts[0].len() ==1 or parts[1].len() ==1:
+            normal_path: Path = parts[0][0]
+            glowing_path: Path = parts[1][0]
+            merged = img_as_uint(
+                load_glowing_pair(normal_path, glowing_path,
+                                  color=color, glowing_part=glowing_part, correction=correction))
+            results.append((glowing_path.stem, merged))
+        else:
+            if not skip_unpaired:
+                assert parts[0].len() ==1 or parts[1].len(), f"f{parts} length are wrong: {parts[0].len()} and {parts[1].len()}"
+            else:
+                if verbose:
+                    print(f"skipping parts with wrong length: {parts[0].len()} and {parts[1].len()}, parts are: {parts}")
     return results
+
+
+@beartype
+def record_glowing_overlays(day_folder: Path, title_image_pairs: list, prefix: str, clahe: bool = False) -> list:
+    results = []
+    tiffs: Path = day_folder / "tiffs"
+    tiffs.mkdir(parents=True, exist_ok=True)
+    for title, picture in title_image_pairs:
+        where = str(tiffs / (title + prefix + ".tiff"))
+        print(f'writing merged {where}')
+        image_2_tiff(picture, where, clahe)
+        results.append(where)
+    return results
+
+
+@beartype
+def write_glowing_overlays(day_folder: Path,
+                           normal="phc",
+                           correction: bool = True,
+                           color: Color = Color.GREEN,
+                           glowing_part: float = 0.5,
+                           skip_unpaired: bool = True,
+                           verbose: bool = False,
+                           prefix: str = "_merged",
+                           clahe: bool = False
+                           ) -> list:
+    tiffs: Path = day_folder / "tiffs"
+    tiffs.mkdir(parents=True, exist_ok=True)
+    pairs: list = get_glowing_overlays(day_folder, normal, correction, color, glowing_part, skip_unpaired, verbose)
+    return record_glowing_overlays(day_folder, pairs,prefix, clahe)
 
