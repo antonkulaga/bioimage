@@ -4,6 +4,8 @@ from bioimage.io import *
 import matplotlib.pyplot as plt
 from beartype import beartype
 
+from glowing import GlowingTrio
+
 
 def show_images(*images, titles=None, cols: int = 2,
                 height_pixels: float = 200,
@@ -116,12 +118,13 @@ def get_image_groups(day_folder: Path, condition_index: int = -1, file_column: s
 @beartype
 def get_glowing_overlays(day_folder: Path,
                          normal="phc",
-                         correction: bool = True,
+                         glowing_ball: int = 30,
                          color: Color = Color.GREEN,
                          glowing_part: float = 0.5,
                          skip_unpaired: bool = True,
-                         verbose: bool = False
-                         ) -> list:
+                         verbose: bool = False,
+                         clahe: bool = False
+                         ) -> list[GlowingTrio]:
     results = []
     for pair in get_image_groups(day_folder):
         parts = pair.partition(lambda f: normal in f.stem)
@@ -129,8 +132,7 @@ def get_glowing_overlays(day_folder: Path,
         if parts[0].len() == 1 or parts[1].len() == 1:
             normal_path: Path = parts[0][0]
             glowing_path: Path = parts[1][0]
-            merged = load_glowing_pair(normal_path, glowing_path, color=color, glowing_part=glowing_part, correction=correction)
-            results.append((glowing_path.stem, merged))
+            results.append(GlowingTrio.load(normal_path, glowing_path, color, glowing_ball=glowing_ball, glowing_part=glowing_part, clahe = clahe))
         else:
             if not skip_unpaired:
                 assert parts[0].len() ==1 or parts[1].len(), f"f{parts} length are wrong: {parts[0].len()} and {parts[1].len()}"
@@ -141,31 +143,21 @@ def get_glowing_overlays(day_folder: Path,
 
 
 @beartype
-def record_glowing_overlays(day_folder: Path, title_image_pairs: list, prefix: str, clahe: bool = False) -> list:
-    results = []
-    tiffs: Path = day_folder / "tiffs"
-    tiffs.mkdir(parents=True, exist_ok=True)
-    for title, picture in title_image_pairs:
-        where = str(tiffs / (title + prefix + ".tiff"))
-        print(f'writing merged {where}')
-        image_2_tiff(picture, where, clahe)
-        results.append(where)
-    return results
-
-
-@beartype
 def write_glowing_overlays(day_folder: Path,
                            normal="phc",
-                           correction: bool = True,
+                           prefix: str = "_merged",
                            color: Color = Color.GREEN,
+                           glowing_ball: int = 30,
                            glowing_part: float = 0.5,
                            skip_unpaired: bool = True,
                            verbose: bool = False,
-                           prefix: str = "_merged",
-                           clahe: bool = False
-                           ) -> list:
-    tiffs: Path = day_folder / "tiffs"
+                           clahe: bool = False,
+                           where: Path = None
+                           ) -> Path:
+    tiffs: Path = day_folder / "tiffs" if where is None else where
     tiffs.mkdir(parents=True, exist_ok=True)
-    pairs: list = get_glowing_overlays(day_folder, normal, correction, color, glowing_part, skip_unpaired, verbose)
-    return record_glowing_overlays(day_folder, pairs,prefix, clahe)
+    trios = get_glowing_overlays(day_folder, normal, glowing_ball, color, glowing_part, skip_unpaired, verbose, clahe)
+    for trio in trios:
+        trio.write_tiff(where, trio.normal_path.stem.replace(normal, prefix))
+    return tiffs
 

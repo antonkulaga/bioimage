@@ -40,23 +40,6 @@ def rolling_ball(image, radius: int = 20, light_bg: bool = False):
     str_el = disk(radius)
     return black_tophat(image, str_el) if light_bg else white_tophat(image, str_el)
 
-@beartype
-def merge_glowing(normal_image: np.ndarray, glowing_image: np.ndarray, color: Color = Color.GREEN,
-                  correction: bool = True, ball: int = 30, glowing_part: float = 0.5):
-    """
-    :param normal_image: image without fluorescence
-    :param glowing_image: image with fluorescence
-    :param color: color, GFP by default
-    :param correction:
-    :param ball:
-    :param glowing_part:
-    :return:
-    """
-    normal_frame = img_as_float64(skimage.color.gray2rgb(normal_image))
-    glowing_frame = img_as_float64(glowing_image)
-    glowing = gray2color(rolling_ball(glowing_frame, ball), color) if correction else gray2color(glowing_frame, color)
-    return normal_frame * (1 - glowing_part) + glowing * glowing_part
-
 
 @beartype
 def local_contrast(image: np.ndarray):

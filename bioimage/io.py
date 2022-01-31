@@ -40,7 +40,7 @@ def get_date(image, verbose: bool=False):
 
 
 @beartype
-def image_2_tiff(image: Union[np.ndarray, pims.Frame], where: str, clahe: bool = False):
+def image_2_tiff(image: Union[np.ndarray, pims.Frame], where: Union[str, Path], clahe: bool = False):
     img = skimage.exposure.equalize_adapthist(image, kernel_size=None, clip_limit=0.01, nbins=256) if clahe else image
     import tifffile
     if isinstance(image, pims.Frame):
@@ -79,16 +79,3 @@ def load_glowing(path: Path, correction: bool = True, color: Color = Color.GREEN
     glowing_frame = load_frame(path)
     glowing = gray2color(rolling_ball(glowing_frame), color) if correction else gray2color(glowing_frame, 1)
     return glowing
-
-@beartype
-def load_glowing_pair(normal_path: Path, glowing_path: Path, color: Color = Color.GREEN, correction: bool = True, ball: int = 30, glowing_part: float = 0.5):
-    """
-    Merging normal and glowing
-    :param normal_path:
-    :param glowing_path:
-    :param correction:
-    :param ball:
-    :param glowing_part:
-    :return:
-    """
-    return merge_glowing(load_frame(normal_path), load_frame(glowing_path), color, correction, ball, glowing_part)

@@ -17,6 +17,7 @@ For example:
 * rolling ball filter to fix some issues on the background
 * local_contrast filter that can be used together with thresholding to find boundaries of the objects
 * gray2color that deals with fluorescent images
+* glowing - for dealing with comparisons between normal and fluorescent images
 
 ## comparisons
 
