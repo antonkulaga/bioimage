@@ -4,7 +4,7 @@ from bioimage.io import *
 import matplotlib.pyplot as plt
 from beartype import beartype
 
-from glowing import GlowingTrio
+from bioimage.glowing import GlowingTrio
 
 
 def show_images(*images, titles=None, cols: int = 2,
@@ -122,8 +122,7 @@ def get_glowing_overlays(day_folder: Path,
                          color: Color = Color.GREEN,
                          glowing_part: float = 0.5,
                          skip_unpaired: bool = True,
-                         verbose: bool = False,
-                         clahe: bool = False
+                         verbose: bool = False
                          ) -> list[GlowingTrio]:
     results = []
     for pair in get_image_groups(day_folder):
@@ -132,7 +131,7 @@ def get_glowing_overlays(day_folder: Path,
         if parts[0].len() == 1 or parts[1].len() == 1:
             normal_path: Path = parts[0][0]
             glowing_path: Path = parts[1][0]
-            results.append(GlowingTrio.load(normal_path, glowing_path, color, glowing_ball=glowing_ball, glowing_part=glowing_part, clahe = clahe))
+            results.append(GlowingTrio.load(normal_path, glowing_path, color, glowing_ball=glowing_ball, glowing_part=glowing_part))
         else:
             if not skip_unpaired:
                 assert parts[0].len() ==1 or parts[1].len(), f"f{parts} length are wrong: {parts[0].len()} and {parts[1].len()}"

@@ -18,4 +18,4 @@ dependencies:
     - tifffile
     - numpy
     - pip:
-          - pycomfort==0.0.4
+          - pycomfort==0.0.5

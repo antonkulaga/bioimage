@@ -1,12 +1,13 @@
-import numpy as np
-import pandas
-import skimage
-from skimage import filters, morphology, img_as_float64
-from skimage.exposure import rescale_intensity
 from enum import Enum
-from numpy.typing import ArrayLike, NDArray
 
+import cv2
+import numpy as np
+import skimage
 from beartype import beartype
+from skimage import filters, morphology, img_as_uint
+from skimage.color import rgb2gray
+from skimage.exposure import rescale_intensity
+
 
 class Color(Enum):
     RED = 0
@@ -42,22 +43,39 @@ def rolling_ball(image, radius: int = 20, light_bg: bool = False):
 
 
 @beartype
-def local_contrast(image: np.ndarray):
-    imageRooted = image ** 2
-    imageRootedConvolved = skimage.filters.gaussian(imageRooted, 1.2)
-    imageConvolved   =  skimage.filters.gaussian(image, 1.2)
+def local_contrast(image: np.ndarray, multichannel: bool = False, to_uint: bool = False) -> np.ndarray:
+    img = img_as_uint(image) if to_uint else image
+    imageRooted = img ** 2
+    imageRootedConvolved = skimage.filters.gaussian(imageRooted, 1.2, multichannel = multichannel)
+    imageConvolved   =  skimage.filters.gaussian(image, 1.2, multichannel = multichannel)
     imageConvolvedRooted = imageConvolved  ** 2
     return np.sqrt(imageRootedConvolved - imageConvolvedRooted) / imageConvolved
 
 
 @beartype
-def thresh(img, clahe: bool = False, median: bool = False, gaus: bool = True):
-    img = skimage.filters.gaussian(img, 1.2) if gaus else img
+def thresh(img: np.ndarray, to_gray: bool = False,
+           clahe: bool = False, median: bool = False,
+           gaus: bool = True, multichannel: bool = False, to_uint: bool = True, fill: int = 0):
+    img = img_as_uint(img) if to_uint else img
+    img = rgb2gray(img) if to_gray and len(img.shape) != 2 else img
+    img = skimage.filters.gaussian(img, 1.2, multichannel=multichannel) if gaus else img
     image_eq = skimage.exposure.equalize_adapthist(img, kernel_size=None, clip_limit=0.01, nbins=256) if clahe else img
     image = (skimage.filters.median(image_eq) if median else image_eq).copy()
-    binary = image > skimage.filters.threshold_mean(image)
-    image[binary] = 0
+    th = skimage.filters.threshold_mean(image)
+    print(f"threshold is {th}")
+    binary = image < th
+    image[binary] = fill
     return image
+
+
+@beartype
+def non_black_ratio(img: np.ndarray) -> float:
+    image = img if len(img.shape) == 2 else rgb2gray(img)
+    # number of black pixels
+    white_pix = cv2.countNonZero(image)
+    # total number of pixels
+    tot_pix = image.size * 1.0
+    return (tot_pix-white_pix) / tot_pix
 
 
 @beartype

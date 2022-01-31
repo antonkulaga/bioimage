@@ -7,7 +7,7 @@ here = os.path.abspath(os.path.dirname(__file__))
 with codecs.open(os.path.join(here, "README.md"), encoding="utf-8") as fh:
     long_description = "\n" + fh.read()
 
-VERSION = '0.0.9'
+VERSION = '0.0.10'
 DESCRIPTION = 'bioimage - library to make working with biomedical images more comfortable'
 LONG_DESCRIPTION = 'A package with python helper functions to make your work with bioimages more comfortable'
 

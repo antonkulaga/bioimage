@@ -1,13 +1,14 @@
 from __future__ import annotations
-import numpy as np
-import pandas as pd
-
-from bioimage.io import *
-import matplotlib.pyplot as plt
-from beartype import beartype
 
 from dataclasses import dataclass
+from functools import cached_property
 
+import matplotlib.pyplot as plt
+from beartype import beartype
+from skimage.color import rgb2gray
+
+from bioimage.io import *
+from bioimage.filters import *
 
 
 @dataclass
@@ -81,11 +82,39 @@ class GlowingTrio:
         self.write_merged(folder / merged_tiff, clahe)
         return folder
 
+    @cached_property
+    @beartype
+    def normal_local_contrast(self):
+        return local_contrast(img_as_float64(self.normal_image))
+
+    @cached_property
+    @beartype
+    def normal_black_ratio(self) -> float:
+        return non_black_ratio(self.normal_local_contrast)
+
+    @cached_property
+    @beartype
+    def glowing_black_ratio(self) -> float:
+        return thresh(self.glowing_image, to_gray=True)
+
+    @property
+    def glowing_percentage(self) -> float:
+        '''
+        :return: percentage of glowing
+        '''
+        return (self.glowing_black_ratio / self.normal_black_ratio) * 100.0
+
+    def compute_ratio(self):
+        non_black_ratio(self.normal_image)
+
     def plot_normal(self):
         plt.imshow(self.normal_image, cmap="gray")
 
     def plot_glowing(self):
         plt.imshow(self.glowing_image, cmap="gray")
 
-    def plot_merged(self):
+    def plot_merged(self, with_ratio: bool = True):
         plt.imshow(self.merged_image)
+        if with_ratio:
+            plt.title(f"{self.glowing_percentage}% glowing")
+            plt.show()
