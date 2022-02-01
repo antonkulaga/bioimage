@@ -67,7 +67,7 @@ def show_file_images(*files: Path, cols: int = 2, height_pixels: float = 200,
     show_images(*images, cols=cols, height_pixels = height_pixels, output_folder = output_folder, cmap= cmap, titles=titles, width_pixels=width_pixels)
 
 @beartype
-def show_glowing(trios: list[GlowingTrio],
+def show_glowing_overlays(trios: list[GlowingTrio],
                  cols: int = 2,
                  height_pixels: float = 200,
                  output_folder: Path = None,

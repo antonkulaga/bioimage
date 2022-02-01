@@ -49,7 +49,7 @@ def local_contrast(image: np.ndarray, multichannel: bool = False, to_uint: bool 
     imageRootedConvolved = skimage.filters.gaussian(imageRooted, 1.2, multichannel = multichannel)
     imageConvolved   =  skimage.filters.gaussian(image, 1.2, multichannel = multichannel)
     imageConvolvedRooted = imageConvolved  ** 2
-    return np.sqrt(imageRootedConvolved - imageConvolvedRooted) / imageConvolved
+    return np.clip(np.sqrt(imageRootedConvolved - imageConvolvedRooted) / imageConvolved, -1.0, 1.0)
 
 
 @beartype
