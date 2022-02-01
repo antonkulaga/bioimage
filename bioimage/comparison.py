@@ -3,6 +3,7 @@ import pandas as pd
 from bioimage.io import *
 import matplotlib.pyplot as plt
 from beartype import beartype
+from skimage import img_as_float
 
 from bioimage.glowing import GlowingTrio
 
@@ -27,7 +28,6 @@ def show_images(*images, titles=None, cols: int = 2,
     width_pixels = height_pixels if width_pixels is None else width_pixels
     width = width_pixels * px
 
-    from skimage import img_as_float
     images = [img_as_float(img) for img in images]
 
     if titles is None:
@@ -66,6 +66,16 @@ def show_file_images(*files: Path, cols: int = 2, height_pixels: float = 200,
     images = seq(files).map(load_frame).to_list()
     show_images(*images, cols=cols, height_pixels = height_pixels, output_folder = output_folder, cmap= cmap, titles=titles, width_pixels=width_pixels)
 
+@beartype
+def show_glowing(trios: list[GlowingTrio],
+                 cols: int = 2,
+                 height_pixels: float = 200,
+                 output_folder: Path = None,
+                 cmap: str = "gray",
+                 width_pixels: float = None):
+    images = seq(trios).map(lambda t: t.merged_image).to_list()
+    titles = seq(trios).map(lambda t: t.merged_label).to_list()
+    show_images(*images, cols=cols, height_pixels = height_pixels, output_folder = output_folder, cmap= cmap, titles=titles, width_pixels=width_pixels)
 
 @beartype
 def to_condition(p: Path, ind: int = -1, sep: str ="_") -> list:

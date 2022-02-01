@@ -53,30 +53,36 @@ def local_contrast(image: np.ndarray, multichannel: bool = False, to_uint: bool 
 
 
 @beartype
-def thresh(img: np.ndarray, to_gray: bool = False,
+def thresh(img: np.ndarray, threshold: float = -1.0, to_gray: bool = True,
+           fill: float = 0.0, verbose: bool = False, multichannel: bool = False,
            clahe: bool = False, median: bool = False,
-           gaus: bool = True, multichannel: bool = False, to_uint: bool = True, fill: int = 0):
+           gaus: bool = False,
+           to_uint: bool = True):
     img = img_as_uint(img) if to_uint else img
     img = rgb2gray(img) if to_gray and len(img.shape) != 2 else img
     img = skimage.filters.gaussian(img, 1.2, multichannel=multichannel) if gaus else img
     image_eq = skimage.exposure.equalize_adapthist(img, kernel_size=None, clip_limit=0.01, nbins=256) if clahe else img
     image = (skimage.filters.median(image_eq) if median else image_eq).copy()
-    th = skimage.filters.threshold_mean(image)
-    print(f"threshold is {th}")
+    th = skimage.filters.threshold_mean(image) if threshold == -1 else threshold
+    if verbose:
+        if threshold < 0.0:
+            print(f"setting up threshold automatically")
+        print(f"threshold is {th}")
     binary = image < th
     image[binary] = fill
     return image
 
 
 @beartype
-def non_black_ratio(img: np.ndarray) -> float:
+def non_black_ratio(img: np.ndarray, verbose: bool=False) -> float:
     image = img if len(img.shape) == 2 else rgb2gray(img)
+    tot_pix = image.size * 1.0
     # number of black pixels
     white_pix = cv2.countNonZero(image)
-    # total number of pixels
-    tot_pix = image.size * 1.0
-    return (tot_pix-white_pix) / tot_pix
-
+    ratio = white_pix / tot_pix
+    if verbose:
+        print(f"{white_pix} / {tot_pix} = {ratio} (non black percentage)")
+    return ratio
 
 @beartype
 def clean_small(image: np.ndarray, size: int = 1):

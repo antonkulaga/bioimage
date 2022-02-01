@@ -89,20 +89,21 @@ class GlowingTrio:
 
     @cached_property
     @beartype
-    def normal_black_ratio(self) -> float:
-        return non_black_ratio(self.normal_local_contrast)
+    def normal_non_black_ratio(self) -> float:
+        return non_black_ratio(thresh(self.normal_local_contrast))
 
     @cached_property
     @beartype
-    def glowing_black_ratio(self) -> float:
-        return thresh(self.glowing_image, to_gray=True)
+    def glowing_non_black_ratio(self) -> float:
+        return non_black_ratio(thresh(self.glowing_image, to_gray=True, threshold=0.05))
 
     @property
+    @beartype
     def glowing_percentage(self) -> float:
         '''
         :return: percentage of glowing
         '''
-        return (self.glowing_black_ratio / self.normal_black_ratio) * 100.0
+        return (self.glowing_non_black_ratio / self.normal_non_black_ratio) * 100.0
 
     def compute_ratio(self):
         non_black_ratio(self.normal_image)
@@ -113,8 +114,14 @@ class GlowingTrio:
     def plot_glowing(self):
         plt.imshow(self.glowing_image, cmap="gray")
 
-    def plot_merged(self, with_ratio: bool = True):
-        plt.imshow(self.merged_image)
-        if with_ratio:
-            plt.title(f"{self.glowing_percentage}% glowing")
-            plt.show()
+    def plot_merged(self):
+        figure = plt.figure()
+        title = f"{self.glowing_path.stem} ({ round(self.glowing_percentage, 2)}% glowing)"
+        axes = figure.add_subplot(1, 1, 1)
+        img = plt.imshow(self.merged_image)
+        figure.suptitle(title)
+        plt.show()
+
+    @cached_property
+    def merged_label(self) -> str:
+        return f"{self.glowing_path.stem} ({ round(self.glowing_percentage, 2)}% glowing)"
