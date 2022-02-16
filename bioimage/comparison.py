@@ -1,3 +1,5 @@
+from typing import Optional
+
 import pandas as pd
 
 from bioimage.io import *
@@ -7,12 +9,14 @@ from skimage import img_as_float
 
 from bioimage.glowing import GlowingTrio
 
+numeric = Union[float, int]
 
+@beartype
 def show_images(*images, titles=None, cols: int = 2,
-                height_pixels: float = 200,
+                height_pixels: numeric = 200,
                 output_folder: Path = None,
                 cmap: str = "gray",
-                width_pixels: float = None):
+                width_pixels: Optional[numeric], font_size: int=16):
     '''
     Shows images in a nice grid
     :param images:
@@ -45,34 +49,40 @@ def show_images(*images, titles=None, cols: int = 2,
     fig.tight_layout()
     for ax, img, label in zip(axes.ravel(), images, titles):
         ax.imshow(img, vmin=vmin, vmax=vmax, cmap=cmap)
-        ax.set_title(label)
+        ax.set_title(label, fontsize=font_size)
     plt.subplots_adjust(wspace=None, hspace=None)
     if output_folder is not None:
         fig.savefig(output_folder / f"condition_comparison_automatically_generated.png", bbox_inches='tight')
 
-
-def show_file_images(*files: Path, cols: int = 2, height_pixels: float = 200,
-                     output_folder: Path = None,
-                     cmap="gray",
-                     width_pixels: float = None):
+@beartype
+def show_file_images(*files: Path, cols: int = 2, height_pixels: numeric = 200,
+                     output_folder: Optional[Path] = None,
+                     cmap: str = "gray",
+                     width_pixels: Optional[numeric] = None,
+                     font_size: int = 16):
     """
-    shows images in a grid starting from files
     :param files:
     :param cols:
-    :param height:
+    :param height_pixels:
+    :param output_folder:
+    :param cmap:
+    :param width_pixels:
     :return:
     """
     titles = [file.name for file in files]
     images = seq(files).map(load_frame).to_list()
-    show_images(*images, cols=cols, height_pixels = height_pixels, output_folder = output_folder, cmap= cmap, titles=titles, width_pixels=width_pixels)
+    show_images(*images, cols=cols,
+                height_pixels=height_pixels, output_folder=output_folder,
+                cmap=cmap, titles=titles, width_pixels=width_pixels,
+                font_size=font_size)
 
 @beartype
 def show_glowing_overlays(trios: list[GlowingTrio],
                  cols: int = 2,
-                 height_pixels: float = 200,
+                 height_pixels: numeric = 200,
                  output_folder: Path = None,
                  cmap: str = "gray",
-                 width_pixels: float = None):
+                 width_pixels: Optional[numeric] = None):
     images = seq(trios).map(lambda t: t.merged_image).to_list()
     titles = seq(trios).map(lambda t: t.merged_label).to_list()
     show_images(*images, cols=cols, height_pixels = height_pixels, output_folder = output_folder, cmap= cmap, titles=titles, width_pixels=width_pixels)

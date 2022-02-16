@@ -18,4 +18,5 @@ dependencies:
     - tifffile
     - numpy
     - pip:
-          - pycomfort==0.0.5
+          - pycomfort==0.0.9
+          - beartype

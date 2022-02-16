@@ -25,4 +25,4 @@ When you need to compare multiple conditions
 For example:
 * show_images that displays images from the whole folder as a grid plot
 * folder_to_conditions that allows splitting images in the folder to multiple conditions based on their namings
-* 
+* get_glowing_overlays that allows combining fluorescent and phase-contrast images
