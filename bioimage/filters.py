@@ -14,7 +14,6 @@ class Color(Enum):
     GREEN = 1
     BLUE = 2
 
-
 def gray2color(u: np.ndarray, channel: Color = Color.GREEN) -> np.ndarray:
     """
     :param u:  fluorescence image
@@ -74,7 +73,7 @@ def thresh(img: np.ndarray, threshold: float = -1.0, to_gray: bool = True,
 
 
 @beartype
-def non_black_ratio(img: np.ndarray, verbose: bool=False) -> float:
+def non_black_ratio(img: np.ndarray, verbose: bool = False) -> float:
     image = img if len(img.shape) == 2 else rgb2gray(img)
     tot_pix = image.size * 1.0
     # number of black pixels
@@ -84,8 +83,9 @@ def non_black_ratio(img: np.ndarray, verbose: bool=False) -> float:
         print(f"{white_pix} / {tot_pix} = {ratio} (non black percentage)")
     return ratio
 
+
 @beartype
 def clean_small(image: np.ndarray, size: int = 1):
-    selem =  morphology.disk(size)
+    selem = morphology.disk(size)
     res = morphology.white_tophat(image, selem)
     return image - res

@@ -11,12 +11,13 @@ from bioimage.glowing import GlowingTrio
 
 numeric = Union[float, int]
 
+
 @beartype
-def show_images(*images, titles=None, cols: int = 2,
+def show_images(*images, titles=Optional[Union[list, seq]], cols: int = 2,
                 height_pixels: numeric = 200,
-                output_folder: Path = None,
+                output_folder: Optional[Path] = None,
                 cmap: str = "gray",
-                width_pixels: Optional[numeric], font_size: int=16):
+                width_pixels: Optional[numeric], font_size: int = 16):
     '''
     Shows images in a nice grid
     :param images:
@@ -76,19 +77,21 @@ def show_file_images(*files: Path, cols: int = 2, height_pixels: numeric = 200,
                 cmap=cmap, titles=titles, width_pixels=width_pixels,
                 font_size=font_size)
 
+
 @beartype
 def show_glowing_overlays(trios: list[GlowingTrio],
                  cols: int = 2,
                  height_pixels: numeric = 200,
-                 output_folder: Path = None,
+                 output_folder: Optional[Path] = None,
                  cmap: str = "gray",
                  width_pixels: Optional[numeric] = None):
     images = seq(trios).map(lambda t: t.merged_image).to_list()
     titles = seq(trios).map(lambda t: t.merged_label).to_list()
     show_images(*images, cols=cols, height_pixels = height_pixels, output_folder = output_folder, cmap= cmap, titles=titles, width_pixels=width_pixels)
 
+
 @beartype
-def to_condition(p: Path, ind: int = -1, sep: str ="_") -> list:
+def to_condition(p: Path, ind: int = -1, sep: str = "_") -> list:
     """
     converts path into a row for condition dataframe
     it assumes that the names of the files have pars separated by "_" or other separator
@@ -171,7 +174,7 @@ def write_glowing_overlays(day_folder: Path,
                            skip_unpaired: bool = True,
                            verbose: bool = False,
                            clahe: bool = False,
-                           where: Path = None
+                           where: Optional[Path] = None
                            ) -> Path:
     tiffs: Path = day_folder / "tiffs" if where is None else where
     tiffs.mkdir(parents=True, exist_ok=True)
